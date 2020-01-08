@@ -286,8 +286,8 @@ def preveriOscilacije_LHS(var1, var2, range1, range2,ns=300, n1 = 999, n2 = 999,
 
     newParams = list(params)                                                        
     oscilacije = [[1 for x in range(n1)] for x in range(n1)]
-    xs = np.linspace(range1[0], range1[1], n1)
-    ys = np.linspace(range2[0], range2[1], n2)
+    xs = np.logspace(range1[0], range1[1], n1)
+    ys = np.logspace(range2[0], range2[1], n2)
     
     # sudoku lhs
     import sudoku_lhs
@@ -317,7 +317,7 @@ def preveriOscilacije_LHS(var1, var2, range1, range2,ns=300, n1 = 999, n2 = 999,
         #peaks_C, minimums_C, peaks_vals_C, minimums_vals_C = findPeaks(C)
         
         if oscilating(peaks_vals_A, 0.01):
-            oscilira = 0.4
+            oscilira = -0.4
             amplitude, periode = evalSignal(peaks_A, minimums_vals_A, peaks_vals_A)
             if (amplitude<0):
                 oscilira = -1
@@ -338,7 +338,7 @@ def preveriOscilacije_LHS(var1, var2, range1, range2,ns=300, n1 = 999, n2 = 999,
     #ax2=fig.add_subplot(122)   #če imamo 3 grafe  - 222, sicer 122
     ax1.set_title("Oscilacije")
     #ax2.set_title("Periode")
-    sns.heatmap(dataFrame1, ax=ax1, cmap="Pastel1")#, xticklabels=list(range(range1[0], range1[1] + 1, int(abs(range1[1] + 1 -range1[0])/n1))), yticklabels=list(range(range2[0], range2[1] + 1, int(abs(range2[1] +1 -range2[0])/n2))), ax=ax1)
+    sns.heatmap(dataFrame1, ax=ax1, cmap="Pastel1", cbar = False)#, xticklabels=list(range(range1[0], range1[1] + 1, int(abs(range1[1] + 1 -range1[0])/n1))), yticklabels=list(range(range2[0], range2[1] + 1, int(abs(range2[1] +1 -range2[0])/n2))), ax=ax1)
     ax1.set_xlabel(varList[var2])
     ax1.set_ylabel(varList[var1])
     #sns.heatmap(dataFrame2, ax=ax2)#xticklabels=list(range(range1[0], range1[1] + 1, int(abs(range1[1] + 1 -range1[0])/n1))), yticklabels=list(range(range2[0], range2[1] + 1, int(abs(range2[1] +1 -range2[0])/n2))), ax=ax2)
@@ -370,7 +370,7 @@ def plotResults(results):
 # parametri: alpha, alpha0, beta, n, m1, m2, m3, K1, K2, K3
 # indeksi:     0       1      2   3   4   5   6   7   8   9
 #preveriObmocje_LHS(4,7, [1,4], [5,6], 30 , 30, 30)
-preveriOscilacije_LHS(4,7, [1,4], [5,6],99,99,99, multi=True)
+preveriOscilacije_LHS(4,7, [-1,4], [-1,4],99,99,99, multi=True)
 #heatmap_mK([10**(-3),1],[10**(-3),1], 5, 5)
 
 # PRIKAZ GRAFA PRI DOLOČENIH PARAMETRIH
