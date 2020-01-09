@@ -387,7 +387,8 @@ def preveriOscilacije_LHS(var1, var2, range1, range2, current_index, ns=300, n1=
 
         oscilacije[x][y] = oscilira
 
-    dataFrame1 = pd.DataFrame(oscilacije, columns=list(map(lambda x: round(x, 3), xs)),index=list(map(lambda y: round(y, 3), ys)))
+    dataFrame1 = pd.DataFrame(oscilacije, columns=list(map(lambda x: round(x, 3), xs)),
+                              index=list(map(lambda y: round(y, 3), ys)))
 
     # print(dataFrame)
 
@@ -458,7 +459,7 @@ def Periode_LHS(var1, var2, range1, range2, current_index, ns=300, n1=999, n2=99
 
         if oscilating(peaks_vals_A, 0.01):
             amplituda, perioda = evalSignal(peaks_A, minimums_vals_A, peaks_vals_A)
-            if (amplituda > 0 and perioda>0):
+            if amplituda > 0 and perioda > 0:
                 max_perioda = max(perioda, max_perioda)
                 periode[x][y] = perioda
 
@@ -466,11 +467,10 @@ def Periode_LHS(var1, var2, range1, range2, current_index, ns=300, n1=999, n2=99
     for i in range(n1):
         for j in range(n1):
             if (periode[i][j] == float('inf')):
-                
-                periode[i][j] = max_perioda *2
-                
+                periode[i][j] = max_perioda * 2
+
     dataFrame1 = pd.DataFrame(periode, columns=list(map(lambda x: round(x, 3), xs)),
-                                  index=list(map(lambda y: round(y, 3), ys)))
+                              index=list(map(lambda y: round(y, 3), ys)))
 
     # print(dataFrame)
 
@@ -486,19 +486,18 @@ def Periode_LHS(var1, var2, range1, range2, current_index, ns=300, n1=999, n2=99
         ax1.set_xlabel(varList[var2])
         ax1.set_ylabel(varList[var1])
     elif current_index % 6 == 1:
-        sns.heatmap(dataFrame1, ax=ax1, 
+        sns.heatmap(dataFrame1, ax=ax1,
                     cbar=True, xticklabels=0, cmap="YlGnBu")
         ax1.set_ylabel(varList[var1])
     else:
         if current_index >= 31:
-            sns.heatmap(dataFrame1, ax=ax1, 
+            sns.heatmap(dataFrame1, ax=ax1,
                         cbar=False, yticklabels=0)
             ax1.set_xlabel(varList[var2])
         else:
-            sns.heatmap(dataFrame1, ax=ax1, 
+            sns.heatmap(dataFrame1, ax=ax1,
                         cbar=False, yticklabels=0,
                         xticklabels=0)
-
 
 
 # plot results
@@ -526,7 +525,7 @@ def Periode_LHS(var1, var2, range1, range2, current_index, ns=300, n1=999, n2=99
 current_index = 1
 for i in range(4, 10):
     for j in range(4, 10):
-        Periode_LHS(i, j, [-1, 4], [-1, 4], current_index, True, 72, 72, 72)
+        Periode_LHS(i, j, [-1, 4], [-1, 4], current_index, 80, 80, 80, False)
         print(current_index)
         current_index += 1
 
