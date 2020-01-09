@@ -387,8 +387,7 @@ def preveriOscilacije_LHS(var1, var2, range1, range2, current_index, ns=300, n1=
 
         oscilacije[x][y] = oscilira
 
-        dataFrame1 = pd.DataFrame(oscilacije, columns=list(map(lambda x: round(x, 3), xs)),
-                                  index=list(map(lambda y: round(y, 3), ys)))
+    dataFrame1 = pd.DataFrame(oscilacije, columns=list(map(lambda x: round(x, 3), xs)),index=list(map(lambda y: round(y, 3), ys)))
 
     # print(dataFrame)
 
@@ -417,11 +416,89 @@ def preveriOscilacije_LHS(var1, var2, range1, range2, current_index, ns=300, n1=
                         cbar=False, yticklabels=0,
                         xticklabels=0)
 
-    # ax1.set_xlabel(varList[var2])
-    # ax1.set_ylabel(varList[var1])
-    # sns.heatmap(dataFrame2, ax=ax2)#xticklabels=list(range(range1[0], range1[1] + 1, int(abs(range1[1] + 1 -range1[0])/n1))), yticklabels=list(range(range2[0], range2[1] + 1, int(abs(range2[1] +1 -range2[0])/n2))), ax=ax2)
-    # ax2.set_xlabel(varList[var2])
-    # ax2.set_ylabel(varList[var1])
+
+# vrne heatmap Period 
+def Periode_LHS(var1, var2, range1, range2, current_index, ns=300, n1=999, n2=999, multi=False):
+    if (n1 != n2):
+        print("n1 not equal n2")
+        return 0
+
+    newParams = list(params)
+    periode = [[float('inf') for x in range(n1)] for x in range(n1)]
+    max_perioda = 0;
+    xs = np.logspace(range1[0], range1[1], n1)
+    ys = np.logspace(range2[0], range2[1], n2)
+
+    # sudoku lhs
+    import sudoku_lhs
+    S, _ = sudoku_lhs.sudoku.sample(2, 3, int(ns / 9), visualize=False, verbose=False)
+    # S - array arrayev, stolpci - prvi element, vrstica - drugi element
+
+    for [x, y] in S:
+
+        val_x = xs[x]
+        val_y = ys[y]
+
+        if multi:
+            newParams[4] = val_x
+            newParams[5] = val_x
+            newParams[6] = val_x
+            newParams[7] = val_y
+            newParams[8] = val_y
+            newParams[9] = val_y
+        else:
+            newParams[var1] = val_x
+            newParams[var2] = val_y
+
+        A, B, C = simulate(model, Z0, t, tuple(newParams))
+
+        peaks_A, minimums_A, peaks_vals_A, minimums_vals_A = findPeaks(A)
+        # peaks_B, minimums_B, peaks_vals_B, minimums_vals_B = findPeaks(B)
+        # peaks_C, minimums_C, peaks_vals_C, minimums_vals_C = findPeaks(C)
+
+        if oscilating(peaks_vals_A, 0.01):
+            amplituda, perioda = evalSignal(peaks_A, minimums_vals_A, peaks_vals_A)
+            if (amplituda > 0 and perioda>0):
+                max_perioda = max(perioda, max_perioda)
+                periode[x][y] = perioda
+
+    # kjer ne oscilira postavimo na max_perioda * 2
+    for i in range(n1):
+        for j in range(n1):
+            if (periode[i][j] == float('inf')):
+                
+                periode[i][j] = max_perioda *2
+                
+    dataFrame1 = pd.DataFrame(periode, columns=list(map(lambda x: round(x, 3), xs)),
+                                  index=list(map(lambda y: round(y, 3), ys)))
+
+    # print(dataFrame)
+
+    varList = ["alpha", "alpha0", "beta", "n", "m1", "m2", "m3", "K1", "K2", "K3"]
+    ax1 = fig.add_subplot(6, 6, current_index)  # če imamo 3 grafe  - 221, sicer 121
+    # ax2=fig.add_subplot(122)   #če imamo 3 grafe  - 222, sicer 122
+    # ax1.set_title("Oscilacije")
+    # ax2.set_title("Periode")
+
+    if current_index == 31:
+        sns.heatmap(dataFrame1, ax=ax1,
+                    cbar=True)
+        ax1.set_xlabel(varList[var2])
+        ax1.set_ylabel(varList[var1])
+    elif current_index % 6 == 1:
+        sns.heatmap(dataFrame1, ax=ax1, 
+                    cbar=True, xticklabels=0, cmap="YlGnBu")
+        ax1.set_ylabel(varList[var1])
+    else:
+        if current_index >= 31:
+            sns.heatmap(dataFrame1, ax=ax1, 
+                        cbar=False, yticklabels=0)
+            ax1.set_xlabel(varList[var2])
+        else:
+            sns.heatmap(dataFrame1, ax=ax1, 
+                        cbar=False, yticklabels=0,
+                        xticklabels=0)
+
 
 
 # plot results
@@ -440,7 +517,7 @@ def preveriOscilacije_LHS(var1, var2, range1, range2, current_index, ns=300, n1=
 # current_index = 1
 # for i in range(4, 10):
 #     for j in range(4, 10):
-#         preveriOscilacije_LHS(i, j, [-1, 4], [-1, 4], current_index, 80, 80, 80, multi=False)
+#         preveriOscilacije_LHS(i, j, [-1, 4], [-1, 4], current_index, 72, 72, 72, multi=False)
 #         print(current_index)
 #         current_index += 1
 
@@ -449,7 +526,7 @@ def preveriOscilacije_LHS(var1, var2, range1, range2, current_index, ns=300, n1=
 current_index = 1
 for i in range(4, 10):
     for j in range(4, 10):
-        preveriObmocje_LHS(i, j, [-1, 4], [-1, 4], current_index, True, 80, 80, 80)
+        Periode_LHS(i, j, [-1, 4], [-1, 4], current_index, True, 72, 72, 72)
         print(current_index)
         current_index += 1
 
