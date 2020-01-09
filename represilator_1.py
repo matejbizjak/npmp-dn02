@@ -93,7 +93,7 @@ def evalSignal(peaks, minVals, peakVals):
 
 
 # output figure
-fig = plt.figure(figsize=(25, 25))  # 3 grafi - 8,8, sicer 8,4
+fig = plt.figure(figsize=(35, 35))  # 3 grafi - 8,8, sicer 8,4
 
 
 # 2d analiza
@@ -224,7 +224,7 @@ def heatmap_mK(range1, range2, n1=100, n2=100):  # 1 - m, 2 - K
 
 # preveri območje, implementirano s sudoku_lhs - število razdelitev območij (n1 in n2) mora bit enako za obe spremenljivki in deljivo s 3
 # ns - število uporabljenih vzorcev - tudi mora biti deljivo s 3
-def preveriObmocje_LHS(var1, var2, range1, range2, ns=300, n1=999, n2=999):
+def preveriObmocje_LHS(var1, var2, range1, range2, current_index, ampl, ns=300, n1=999, n2=999):
     if (n1 != n2):
         print("n1 not equal n2")
         return 0
@@ -276,18 +276,60 @@ def preveriObmocje_LHS(var1, var2, range1, range2, ns=300, n1=999, n2=999):
     # print(dataFrame)
 
     varList = ["alpha", "alpha0", "beta", "n", "m1", "m2", "m3", "K1", "K2", "K3"]
-    ax1 = fig.add_subplot(121)  # če imamo 3 grafe  - 221, sicer 121
-    ax2 = fig.add_subplot(122)  # če imamo 3 grafe  - 222, sicer 122
-    ax1.set_title("Amplitude")
-    ax2.set_title("Periode")
-    sns.heatmap(dataFrame1,
-                ax=ax1)  # , xticklabels=list(range(range1[0], range1[1] + 1, int(abs(range1[1] + 1 -range1[0])/n1))), yticklabels=list(range(range2[0], range2[1] + 1, int(abs(range2[1] +1 -range2[0])/n2))), ax=ax1)
-    ax1.set_xlabel(varList[var2])
-    ax1.set_ylabel(varList[var1])
-    sns.heatmap(dataFrame2,
-                ax=ax2)  # xticklabels=list(range(range1[0], range1[1] + 1, int(abs(range1[1] + 1 -range1[0])/n1))), yticklabels=list(range(range2[0], range2[1] + 1, int(abs(range2[1] +1 -range2[0])/n2))), ax=ax2)
-    ax2.set_xlabel(varList[var2])
-    ax2.set_ylabel(varList[var1])
+    if ampl:
+        ax1 = fig.add_subplot(6, 6, current_index)  # če imamo 3 grafe  - 221, sicer 121
+        ax1.set_title("Amplitude")
+        ##
+        if current_index == 31:
+            sns.heatmap(dataFrame1, ax=ax1, cmap="Pastel1",
+                        cbar=False)
+            ax1.set_xlabel(varList[var2])
+            ax1.set_ylabel(varList[var1])
+        elif current_index % 6 == 1:
+            sns.heatmap(dataFrame1, ax=ax1, cmap="Pastel1",
+                        cbar=False, xticklabels=0)
+            ax1.set_ylabel(varList[var1])
+        else:
+            if current_index >= 31:
+                sns.heatmap(dataFrame1, ax=ax1, cmap="Pastel1",
+                            cbar=False, yticklabels=0)
+                ax1.set_xlabel(varList[var2])
+            else:
+                sns.heatmap(dataFrame1, ax=ax1, cmap="Pastel1",
+                            cbar=False, yticklabels=0,
+                            xticklabels=0)
+        ##
+        sns.heatmap(dataFrame1,
+                    ax=ax1)
+        ax1.set_xlabel(varList[var2])
+        ax1.set_ylabel(varList[var1])
+    else:
+        ax2 = fig.add_subplot(6, 6, current_index)  # če imamo 3 grafe  - 222, sicer 122
+        ax2.set_title("Periode")
+        ##
+        if current_index == 31:
+            sns.heatmap(dataFrame1, ax=ax2, cmap="Pastel1",
+                        cbar=False)
+            ax2.set_xlabel(varList[var2])
+            ax2.set_ylabel(varList[var1])
+        elif current_index % 6 == 1:
+            sns.heatmap(dataFrame1, ax=ax2, cmap="Pastel1",
+                        cbar=False, xticklabels=0)
+            ax2.set_ylabel(varList[var1])
+        else:
+            if current_index >= 31:
+                sns.heatmap(dataFrame1, ax=ax2, cmap="Pastel1",
+                            cbar=False, yticklabels=0)
+                ax2.set_xlabel(varList[var2])
+            else:
+                sns.heatmap(dataFrame1, ax=ax2, cmap="Pastel1",
+                            cbar=False, yticklabels=0,
+                            xticklabels=0)
+        ##
+        sns.heatmap(dataFrame2,
+                    ax=ax2)
+        ax2.set_xlabel(varList[var2])
+        ax2.set_ylabel(varList[var1])
 
 
 # isto kot preveriObmocje_LHS, le da dobimo graf, ki prikezuje le ali oscilira, ali ne oscilira
@@ -395,14 +437,21 @@ def preveriOscilacije_LHS(var1, var2, range1, range2, current_index, ns=300, n1=
 # indeksi:     0       1      2   3   4   5   6   7   8   9
 # preveriObmocje_LHS(4,7, [1,4], [5,6], 30 , 30, 30)
 
+# current_index = 1
+# for i in range(4, 10):
+#     for j in range(4, 10):
+#         preveriOscilacije_LHS(i, j, [-1, 4], [-1, 4], current_index, 80, 80, 80, multi=False)
+#         print(current_index)
+#         current_index += 1
+
+# heatmap_mK([10**(-3),1],[10**(-3),1], 5, 5)
+
 current_index = 1
 for i in range(4, 10):
     for j in range(4, 10):
-        preveriOscilacije_LHS(i, j, [-1, 4], [-1, 4], current_index, 30, 30, 30, multi=True)
+        preveriObmocje_LHS(i, j, [-1, 4], [-1, 4], current_index, True, 80, 80, 80)
         print(current_index)
         current_index += 1
-
-# heatmap_mK([10**(-3),1],[10**(-3),1], 5, 5)
 
 # PRIKAZ GRAFA PRI DOLOČENIH PARAMETRIH
 
