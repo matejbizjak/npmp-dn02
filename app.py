@@ -9,6 +9,7 @@ from utils import eval_signal, oscilating, find_peaks
 
 
 def preveri_obmocje(samples_number):
+    # vse kombinacije m-jev in K-jev
     graph_index = 1
     for i in range(1, 4):
         for j in range(1, 4):
@@ -21,13 +22,16 @@ def sampling(m_number, K_number, samples_number, graph_index):
     # params = (alpha, alpha0, beta, n, m1, m2, m3, K1, K2, K3)
     new_params = list(params)
 
+    # zgradimo prazne matrike, kamor bomo shranjevali rezultate
     oscilacije = [[np.nan for x in range(samples_number)] for x in range(4)]
     amplitude = [[np.nan for x in range(samples_number)] for x in range(4)]
     periode = [[np.nan for x in range(samples_number)] for x in range(4)]
 
+    # sampling
     m_samples = [4, 3, 2, 1]
     K_samples = np.logspace(-1, 3, samples_number)
 
+    # za vse sample pozenemo simulacijo in rezultate shranimo v prej narejene matrike
     for x in range(len(m_samples)):
         print('\t', x)
         for y in range(len(K_samples)):
@@ -74,7 +78,7 @@ def sampling(m_number, K_number, samples_number, graph_index):
 
 
 params = get_model_params()
-
+# velikost koncne slike v px*10 (x, y)
 # fig = plt.figure(figsize=(100, 10))
 # fig2 = plt.figure(figsize=(100, 10))
 # fig3 = plt.figure(figsize=(100, 10))
