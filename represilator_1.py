@@ -93,7 +93,9 @@ def evalSignal(peaks, minVals, peakVals):
 
 
 # output figure
-fig = plt.figure(figsize=(15, 15))  # 3 grafi - 8,8, sicer 8,4
+fig = plt.figure(figsize=(50, 10))
+fig2 = plt.figure(figsize=(50, 10))
+fig3 = plt.figure(figsize=(50, 10))
 
 
 # 2d analiza
@@ -394,7 +396,7 @@ def preveriOscilacije_LHS(var1, var2, range1, range2, current_index, ns=300, n1=
 
     varList = ["alpha", "alpha0", "beta", "n", "m1=m2=m3", "m2", "m3", "K1=K2=K3", "K2", "K3"]
     ax1 = fig.add_subplot(1, 1, 1)  # v pairplotu - 6,6,current_index, standalone - 1,1,1
-    
+
     if current_index == 31:
         sns.heatmap(dataFrame1, ax=ax1, cmap="Pastel1",
                     cbar=False)
@@ -488,7 +490,7 @@ def Periode_LHS(var1, var2, range1, range2, current_index, ns=300, n1=999, n2=99
         ax1.set_ylabel(varList[var1])
     else:
         if current_index >= 31:
-            sns.heatmap(dataFrame1, ax=ax1, 
+            sns.heatmap(dataFrame1, ax=ax1,
                         cbar=False, yticklabels=0, cmap="YlGnBu")
             ax1.set_xlabel(varList[var2])
         else:
@@ -498,6 +500,74 @@ def Periode_LHS(var1, var2, range1, range2, current_index, ns=300, n1=999, n2=99
 
 
 # plot results
+
+
+######
+# nova verzija - matej
+
+def nevem(samples_number):
+    graph_index = 1
+    for i in range(1, 4):
+        for j in range(1, 4):
+            print(graph_index, 'out of ', 9)
+            preveriOscilacije_LHS_Matej(i, j, samples_number, graph_index)
+            graph_index += 1
+
+
+def preveriOscilacije_LHS_Matej(m_number, K_number, samples_number, graph_index):
+    # params = (alpha, alpha0, beta, n, m1, m2, m3, K1, K2, K3)
+    newParams = list(params)
+
+    oscilacije = [[np.nan for x in range(samples_number)] for x in range(4)]
+    amplitude = [[np.nan for x in range(samples_number)] for x in range(4)]
+    periode = [[np.nan for x in range(samples_number)] for x in range(4)]
+
+    m_samples = [4, 3, 2, 1]
+    K_samples = np.logspace(-1, 3, samples_number)
+
+    for x in range(len(m_samples)):
+        print('\t', x)
+        for y in range(len(K_samples)):
+            newParams[3 + m_number] = m_samples[x]
+            newParams[6 + K_number] = K_samples[y]
+
+            A, B, C = simulate(model, Z0, t, tuple(newParams))
+
+            peaks_A, minimums_A, peaks_vals_A, minimums_vals_A = findPeaks(A)
+
+            if oscilating(peaks_vals_A, 0.01):
+                oscilacije[x][y] = 1
+
+                amplituda, perioda = evalSignal(peaks_A, minimums_vals_A, peaks_vals_A)
+                amplitude[x][y] = amplituda
+                periode[x][y] = perioda
+
+    # graf za oscilacije
+    dataFrame1 = pd.DataFrame(oscilacije, columns=K_samples, index=m_samples)
+    varList = ["alpha", "alpha0", "beta", "n", "m1", "m2", "m3", "K1", "K2", "K3"]
+    ax1 = fig.add_subplot(3, 3, graph_index)  # v pairplotu - 6,6,current_index, standalone - 1,1,1
+    fig.suptitle('Oscilacije', fontsize=30)
+    sns.heatmap(dataFrame1, ax=ax1, cbar=True, square=True, mask=dataFrame1.isnull(), cmap="YlGnBu")
+    ax1.set_xlabel(varList[6 + K_number])
+    ax1.set_ylabel(varList[3 + m_number])
+
+    # graf za amplitude
+    dataFrame2 = pd.DataFrame(amplitude, columns=K_samples, index=m_samples)
+    varList = ["alpha", "alpha0", "beta", "n", "m1", "m2", "m3", "K1", "K2", "K3"]
+    ax2 = fig2.add_subplot(3, 3, graph_index)  # v pairplotu - 6,6,current_index, standalone - 1,1,1
+    fig2.suptitle('Amplitude', fontsize=30)
+    sns.heatmap(dataFrame2, ax=ax2, cbar=True, square=True, mask=dataFrame2.isnull(), cmap="YlGnBu")
+    ax1.set_xlabel(varList[6 + K_number])
+    ax1.set_ylabel(varList[3 + m_number])
+
+    # graf za periode
+    dataFrame3 = pd.DataFrame(periode, columns=K_samples, index=m_samples)
+    varList = ["alpha", "alpha0", "beta", "n", "m1", "m2", "m3", "K1", "K2", "K3"]
+    ax3 = fig3.add_subplot(3, 3, graph_index)  # v pairplotu - 6,6,current_index, standalone - 1,1,1
+    fig3.suptitle('Periode', fontsize=30)
+    sns.heatmap(dataFrame3, ax=ax3, cbar=True, square=True, mask=dataFrame3.isnull(), cmap="YlGnBu")
+    ax1.set_xlabel(varList[6 + K_number])
+    ax1.set_ylabel(varList[3 + m_number])
 
 
 ##################
@@ -511,12 +581,13 @@ def Periode_LHS(var1, var2, range1, range2, current_index, ns=300, n1=999, n2=99
 # preveriObmocje_LHS(4,7, [1,4], [5,6], 30 , 30, 30)
 
 def pairplot_oscilacije():
-     current_index = 1
-     for i in range(4, 10):
-         for j in range(4, 10):
-             preveriOscilacije_LHS(i, j, [-1, 4], [-1, 4], current_index, 54, 54, 54, multi=False)
-             print(current_index)
-             current_index += 1
+    current_index = 1
+    for i in range(4, 10):
+        for j in range(4, 10):
+            preveriOscilacije_LHS(i, j, [-1, 4], [-1, 4], current_index, 54, 54, 54, multi=False)
+            print(current_index)
+            current_index += 1
+
 
 # heatmap_mK([10**(-3),1],[10**(-3),1], 5, 5)
 
@@ -528,9 +599,12 @@ def pairplot_periode():
             print(current_index)
             current_index += 1
 
-#pairplot_oscilacije()
-#pairplot_periode()
-preveriOscilacije_LHS(4,7, [-1,4], [-1,4], 31,99 , 99, 99, multi=True)
+
+# pairplot_oscilacije()
+# pairplot_periode()
+# preveriOscilacije_LHS(4, 7, [-1, 4], [-1, 4], 31, 99, 99, 99, multi=True)
+
+nevem(1000)
 
 # PRIKAZ GRAFA PRI DOLOČENIH PARAMETRIH
 
