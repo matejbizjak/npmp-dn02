@@ -93,9 +93,9 @@ def evalSignal(peaks, minVals, peakVals):
 
 
 # output figure
-fig = plt.figure(figsize=(50, 10))
-fig2 = plt.figure(figsize=(50, 10))
-fig3 = plt.figure(figsize=(50, 10))
+fig = plt.figure(figsize=(100, 10))
+fig2 = plt.figure(figsize=(100, 10))
+fig3 = plt.figure(figsize=(100, 10))
 
 
 # 2d analiza
@@ -543,31 +543,31 @@ def preveriOscilacije_LHS_Matej(m_number, K_number, samples_number, graph_index)
                 periode[x][y] = perioda
 
     # graf za oscilacije
-    dataFrame1 = pd.DataFrame(oscilacije, columns=K_samples, index=m_samples)
+    dataFrame1 = pd.DataFrame(oscilacije, columns=list(map(lambda k: round(k, 3), K_samples)), index=m_samples)
     varList = ["alpha", "alpha0", "beta", "n", "m1", "m2", "m3", "K1", "K2", "K3"]
     ax1 = fig.add_subplot(3, 3, graph_index)  # v pairplotu - 6,6,current_index, standalone - 1,1,1
     fig.suptitle('Oscilacije', fontsize=30)
-    sns.heatmap(dataFrame1, ax=ax1, cbar=True, square=True, mask=dataFrame1.isnull(), cmap="YlGnBu")
+    sns.heatmap(dataFrame1, ax=ax1, cbar=True, square=False, mask=dataFrame1.isnull(), cmap="YlGnBu")
     ax1.set_xlabel(varList[6 + K_number])
     ax1.set_ylabel(varList[3 + m_number])
 
     # graf za amplitude
-    dataFrame2 = pd.DataFrame(amplitude, columns=K_samples, index=m_samples)
+    dataFrame2 = pd.DataFrame(amplitude, columns=list(map(lambda k: round(k, 3), K_samples)), index=m_samples)
     varList = ["alpha", "alpha0", "beta", "n", "m1", "m2", "m3", "K1", "K2", "K3"]
     ax2 = fig2.add_subplot(3, 3, graph_index)  # v pairplotu - 6,6,current_index, standalone - 1,1,1
     fig2.suptitle('Amplitude', fontsize=30)
-    sns.heatmap(dataFrame2, ax=ax2, cbar=True, square=True, mask=dataFrame2.isnull(), cmap="YlGnBu")
-    ax1.set_xlabel(varList[6 + K_number])
-    ax1.set_ylabel(varList[3 + m_number])
+    sns.heatmap(dataFrame2, ax=ax2, cbar=True, square=False, mask=dataFrame2.isnull(), cmap="YlGnBu")
+    ax2.set_xlabel(varList[6 + K_number])
+    ax2.set_ylabel(varList[3 + m_number])
 
     # graf za periode
-    dataFrame3 = pd.DataFrame(periode, columns=K_samples, index=m_samples)
+    dataFrame3 = pd.DataFrame(periode, columns=list(map(lambda k: round(k, 3), K_samples)), index=m_samples)
     varList = ["alpha", "alpha0", "beta", "n", "m1", "m2", "m3", "K1", "K2", "K3"]
     ax3 = fig3.add_subplot(3, 3, graph_index)  # v pairplotu - 6,6,current_index, standalone - 1,1,1
     fig3.suptitle('Periode', fontsize=30)
-    sns.heatmap(dataFrame3, ax=ax3, cbar=True, square=True, mask=dataFrame3.isnull(), cmap="YlGnBu")
-    ax1.set_xlabel(varList[6 + K_number])
-    ax1.set_ylabel(varList[3 + m_number])
+    sns.heatmap(dataFrame3, ax=ax3, cbar=True, square=False, mask=dataFrame3.isnull(), cmap="YlGnBu")
+    ax3.set_xlabel(varList[6 + K_number])
+    ax3.set_ylabel(varList[3 + m_number])
 
 
 ##################
