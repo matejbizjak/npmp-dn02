@@ -91,13 +91,6 @@ def evalSignal(peaks, minVals, peakVals):
     periode = (peaks[-2] - peaks[-3]) / 10  # 10 = n/t_end
     return amplitude, periode
 
-
-# output figure
-fig = plt.figure(figsize=(100, 10))
-fig2 = plt.figure(figsize=(100, 10))
-fig3 = plt.figure(figsize=(100, 10))
-
-
 # 2d analiza
 
 # uniformno vzorčenje, dve spremenljivki
@@ -580,6 +573,18 @@ def preveriOscilacije_LHS_Matej(m_number, K_number, samples_number, graph_index)
 # indeksi:     0       1      2   3   4   5   6   7   8   9
 # preveriObmocje_LHS(4,7, [1,4], [5,6], 30 , 30, 30)
 
+# output figure
+# fig = plt.figure(figsize=(100, 10))
+# fig2 = plt.figure(figsize=(100, 10))
+# fig3 = plt.figure(figsize=(100, 10))
+
+fig = plt.figure(figsize=(25, 10))
+fig2 = plt.figure(figsize=(25, 10))
+fig3 = plt.figure(figsize=(25, 10))
+
+nevem(50)
+
+
 def pairplot_oscilacije():
     current_index = 1
     for i in range(4, 10):
@@ -603,8 +608,6 @@ def pairplot_periode():
 # pairplot_oscilacije()
 # pairplot_periode()
 # preveriOscilacije_LHS(4, 7, [-1, 4], [-1, 4], 31, 99, 99, 99, multi=True)
-
-nevem(1000)
 
 # PRIKAZ GRAFA PRI DOLOČENIH PARAMETRIH
 
