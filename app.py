@@ -1,5 +1,6 @@
 from datetime import datetime
 from sys import exit
+from time import time
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -66,17 +67,20 @@ def plot_graph(data, m_number, K_number, m_samples, K_samples, graph_index, figu
     subplot.set_ylabel(var_list[3 + m_number])
 
 
-# SETTINGS
-# model_type = 'positive'
-model_type = 'negative'
+# USER PARAMETERS
+model_type = 'positive'
+# model_type = 'negative'
 
-# figure_size_x = 100
-# figure_size_y = 10
-figure_size_x = 30
+figure_size_x = 100
 figure_size_y = 15
+# figure_size_x = 30
+# figure_size_y = 15
 
-samples_number = 100
-# END OF SETTINGS
+samples_number = 1000
+# END OF USER PARAMETERS
+
+# SETUP
+start_time = time()
 
 _temp = __import__(model_type + '_core', globals(), locals(), ['get_model_params', 'model', 'simulate'], 0)
 get_model_params = _temp.get_model_params
@@ -88,10 +92,13 @@ params = get_model_params()
 fig_osc = plt.figure(figsize=(figure_size_x, figure_size_y))
 fig_amp = plt.figure(figsize=(figure_size_x, figure_size_y))
 fig_per = plt.figure(figsize=(figure_size_x, figure_size_y))
+# END OF SETUP
 
+# RUN
 preveri_obmocje(samples_number)
+# END OF RUN
 
-# SHRANJEVANJE GRAFOV
+# SAVE GRAPHS
 print('Saving graphs...')
 current_time = datetime.now().strftime("%m-%d-%Y_%H-%M-%S")
 # eps
@@ -110,5 +117,7 @@ fig_per.savefig('plots/temp/png/' + model_type[0] + '_' + str(current_time) + '_
                 format='png')
 
 # plt.show()
+# END OF SAVE GRAPHS
 
+print('Job completed in ', time() - start_time, ' seconds.')
 exit(0)
