@@ -89,7 +89,9 @@ fig1 = plt.figure(figsize=(25, 10))
 fig2 = plt.figure(figsize=(25, 10))
 fig3 = plt.figure(figsize=(25, 10))
 
-limiting_params = genetic_algorithm()
+limiting_params = genetic_algorithm(mode="all_params")
+# limiting_params = genetic_algorithm()
+print(limiting_params)
 
 preveri_obmocje(50)
 # ce zelis spremeniti tip modela (poz. v neg. povratno zanko samo spremeni importe)
