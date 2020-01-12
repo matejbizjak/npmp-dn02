@@ -8,6 +8,7 @@ import pandas as pd
 import seaborn as sb
 
 from utils import eval_signal, oscilating, find_peaks
+from genetics import genetic_algorithm
 
 
 def preveri_obmocje(samples_number):
@@ -93,6 +94,12 @@ fig_osc = plt.figure(figsize=(figure_size_x, figure_size_y))
 fig_amp = plt.figure(figsize=(figure_size_x, figure_size_y))
 fig_per = plt.figure(figsize=(figure_size_x, figure_size_y))
 # END OF SETUP
+
+# GENETICS OPTIMIZATION
+# limiting_params = genetic_algorithm(mode="all_params")
+limiting_params = genetic_algorithm()
+print(limiting_params)
+# END OF GENETICS OPTIMIZATION
 
 # RUN
 preveri_obmocje(samples_number)
