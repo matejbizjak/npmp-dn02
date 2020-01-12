@@ -7,6 +7,8 @@ from negative_core import get_model_params, model, simulate
 # from positive_core import get_model_params, model, simulate
 from utils import eval_signal, oscilating, find_peaks
 
+from genetics import genetic_algorithm
+
 
 def preveri_obmocje(samples_number):
     # vse kombinacije m-jev in K-jev
@@ -86,6 +88,8 @@ params = get_model_params()
 fig1 = plt.figure(figsize=(25, 10))
 fig2 = plt.figure(figsize=(25, 10))
 fig3 = plt.figure(figsize=(25, 10))
+
+limiting_params = genetic_algorithm()
 
 preveri_obmocje(50)
 # ce zelis spremeniti tip modela (poz. v neg. povratno zanko samo spremeni importe)
