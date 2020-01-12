@@ -1,10 +1,11 @@
+from datetime import datetime
+from sys import exit
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sb
 
-from negative_core import get_model_params, model, simulate
-# from positive_core import get_model_params, model, simulate
 from utils import eval_signal, oscilating, find_peaks
 
 
@@ -33,7 +34,7 @@ def sampling(m_number, K_number, samples_number, graph_index):
 
     # za vse sample pozenemo simulacijo in rezultate shranimo v prej narejene matrike
     for x in range(len(m_samples)):
-        print('\t', x)
+        print('\t', x + 1, 'out of ', len(m_samples))
         for y in range(len(K_samples)):
             new_params[3 + m_number] = m_samples[x]
             new_params[6 + K_number] = K_samples[y]
@@ -49,48 +50,65 @@ def sampling(m_number, K_number, samples_number, graph_index):
                 amplitude[x][y] = amplituda
                 periode[x][y] = perioda
 
-    # graf za oscilacije
-    data_frame1 = pd.DataFrame(oscilacije, columns=list(map(lambda k: round(k, 3), K_samples)), index=m_samples)
-    var_list = ["alpha", "alpha0", "beta", "n", "m1", "m2", "m3", "K1", "K2", "K3"]
-    ax1 = fig1.add_subplot(3, 3, graph_index)
-    fig1.suptitle('Oscilacije', fontsize=30)
-    sb.heatmap(data_frame1, ax=ax1, cbar=True, square=False, mask=data_frame1.isnull(), cmap="YlGnBu")
-    ax1.set_xlabel(var_list[6 + K_number])
-    ax1.set_ylabel(var_list[3 + m_number])
+    # narisemo grafe
+    plot_graph(oscilacije, m_number, K_number, m_samples, K_samples, graph_index, fig_osc, 'Oscilacije')
+    plot_graph(amplitude, m_number, K_number, m_samples, K_samples, graph_index, fig_amp, 'Amplitude')
+    plot_graph(periode, m_number, K_number, m_samples, K_samples, graph_index, fig_per, 'Periode')
 
-    # graf za amplitude
-    data_frame2 = pd.DataFrame(amplitude, columns=list(map(lambda k: round(k, 3), K_samples)), index=m_samples)
-    var_list = ["alpha", "alpha0", "beta", "n", "m1", "m2", "m3", "K1", "K2", "K3"]
-    ax2 = fig2.add_subplot(3, 3, graph_index)
-    fig2.suptitle('Amplitude', fontsize=30)
-    sb.heatmap(data_frame2, ax=ax2, cbar=True, square=False, mask=data_frame2.isnull(), cmap="YlGnBu")
-    ax2.set_xlabel(var_list[6 + K_number])
-    ax2.set_ylabel(var_list[3 + m_number])
 
-    # graf za periode
-    data_frame3 = pd.DataFrame(periode, columns=list(map(lambda k: round(k, 3), K_samples)), index=m_samples)
+def plot_graph(data, m_number, K_number, m_samples, K_samples, graph_index, figure, figure_title):
+    data_frame = pd.DataFrame(data, columns=list(map(lambda k: round(k, 3), K_samples)), index=m_samples)
+    subplot = figure.add_subplot(3, 3, graph_index)
+    figure.suptitle(figure_title, fontsize=30)
+    sb.heatmap(data_frame, ax=subplot, cbar=True, square=False, mask=data_frame.isnull(), cmap="YlGnBu")
     var_list = ["alpha", "alpha0", "beta", "n", "m1", "m2", "m3", "K1", "K2", "K3"]
-    ax3 = fig3.add_subplot(3, 3, graph_index)
-    fig3.suptitle('Periode', fontsize=30)
-    sb.heatmap(data_frame3, ax=ax3, cbar=True, square=False, mask=data_frame3.isnull(), cmap="YlGnBu")
-    ax3.set_xlabel(var_list[6 + K_number])
-    ax3.set_ylabel(var_list[3 + m_number])
+    subplot.set_xlabel(var_list[6 + K_number])
+    subplot.set_ylabel(var_list[3 + m_number])
 
+
+# SETTINGS
+# model_type = 'positive'
+model_type = 'negative'
+
+# figure_size_x = 100
+# figure_size_y = 10
+figure_size_x = 30
+figure_size_y = 15
+
+samples_number = 100
+# END OF SETTINGS
+
+_temp = __import__(model_type + '_core', globals(), locals(), ['get_model_params', 'model', 'simulate'], 0)
+get_model_params = _temp.get_model_params
+model = _temp.model
+simulate = _temp.simulate
 
 params = get_model_params()
-# velikost koncne slike v px*10 (x, y)
-# fig = plt.figure(figsize=(100, 10))
-# fig2 = plt.figure(figsize=(100, 10))
-# fig3 = plt.figure(figsize=(100, 10))
 
-fig1 = plt.figure(figsize=(25, 10))
-fig2 = plt.figure(figsize=(25, 10))
-fig3 = plt.figure(figsize=(25, 10))
+fig_osc = plt.figure(figsize=(figure_size_x, figure_size_y))
+fig_amp = plt.figure(figsize=(figure_size_x, figure_size_y))
+fig_per = plt.figure(figsize=(figure_size_x, figure_size_y))
 
-preveri_obmocje(50)
-# ce zelis spremeniti tip modela (poz. v neg. povratno zanko samo spremeni importe)
+preveri_obmocje(samples_number)
 
 # SHRANJEVANJE GRAFOV
-# plt.savefig('testplot.eps', format='eps')
+print('Saving graphs...')
+current_time = datetime.now().strftime("%m-%d-%Y_%H-%M-%S")
+# eps
+fig_osc.savefig('plots/temp/eps/' + model_type[0] + '_' + str(current_time) + '_osc' + str(samples_number) + '.eps',
+                format='eps')
+fig_amp.savefig('plots/temp/eps/' + model_type[0] + '_' + str(current_time) + '_amp' + str(samples_number) + '.eps',
+                format='eps')
+fig_per.savefig('plots/temp/eps/' + model_type[0] + '_' + str(current_time) + '_per' + str(samples_number) + '.eps',
+                format='eps')
+# png
+fig_osc.savefig('plots/temp/png/' + model_type[0] + '_' + str(current_time) + '_osc' + str(samples_number) + '.png',
+                format='png')
+fig_amp.savefig('plots/temp/png/' + model_type[0] + '_' + str(current_time) + '_amp' + str(samples_number) + '.png',
+                format='png')
+fig_per.savefig('plots/temp/png/' + model_type[0] + '_' + str(current_time) + '_per' + str(samples_number) + '.png',
+                format='png')
 
-plt.show()
+# plt.show()
+
+exit(0)
