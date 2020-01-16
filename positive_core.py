@@ -20,12 +20,12 @@ alpha = 216
 alpha0 = 0.001 * alpha
 n = 2
 beta = 5
-m1 = 1
-m2 = 1
-m3 = 1
-K1 = 4
-K2 = 4
-K3 = 4
+m1 = 0
+m2 = 0
+m3 = 0
+K1 = 1
+K2 = 1
+K3 = 1
 
 
 def simulate(model, params):
