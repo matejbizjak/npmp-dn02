@@ -1,3 +1,4 @@
+import random
 from datetime import datetime
 from sys import exit
 from time import time
@@ -6,7 +7,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sb
-import random
 
 from utils import eval_signal, oscilating, find_peaks
 
@@ -22,6 +22,14 @@ def preveri_obmocje(samples_number):
 
 
 def sampling(m_number, K_number, samples_number, graph_index):
+    """
+    :param m_number:
+    :param K_number:
+    :param samples_number:
+    :param graph_index:
+    :return:
+    """
+
     # params = (alpha, alpha0, beta, n, m1, m2, m3, K1, K2, K3)
     new_params = list(params)
 
@@ -32,7 +40,8 @@ def sampling(m_number, K_number, samples_number, graph_index):
 
     # sampling
     m_samples = [4, 3, 2, 1]
-    K_samples = np.logspace(-1, 3, samples_number)
+    # K_samples = np.logspace(-1, 3, samples_number)
+    K_samples = np.linspace(0.1, 1000, samples_number)
 
     # za vse sample pozenemo simulacijo in rezultate shranimo v prej narejene matrike
     for x in range(len(m_samples)):
@@ -68,25 +77,43 @@ def plot_graph(data, m_number, K_number, m_samples, K_samples, graph_index, figu
     subplot.set_ylabel(var_list[3 + m_number])
 
 
-# USER PARAMETERS
-model_type = 'positive'
-# model_type = 'negative'
+def pairplot2(m_number, K_number, samples_number, graph_index):
+    # in development
+    # params = (alpha, alpha0, beta, n, m1, m2, m3, K1, K2, K3)
+    new_params = list(params)
 
-figure_size_x = 100
-figure_size_y = 15
-# figure_size_x = 30
-# figure_size_y = 15
+    # zgradimo prazne matrike, kamor bomo shranjevali rezultate
+    oscilacije = []
+    amplitude = []
+    periode = []
 
-samples_number = 1000
-# END OF USER PARAMETERS
+    # sampling
+    m_samples = [4, 3, 2, 1]
+    # K_samples = np.logspace(-1, 3, samples_number)
+    K_samples = np.linspace(0.1, 1000, samples_number)
 
-# SETUP
-start_time = time()
+    # za vse sample pozenemo simulacijo in rezultate shranimo v prej narejene matrike
+    for x in range(len(m_samples)):
+        print('\t', x + 1, 'out of ', len(m_samples))
+        for y in range(len(K_samples)):
+            new_params[3 + m_number] = m_samples[x]
+            new_params[6 + K_number] = K_samples[y]
 
-_temp = __import__(model_type + '_core', globals(), locals(), ['get_model_params', 'model', 'simulate'], 0)
-get_model_params = _temp.get_model_params
-model = _temp.model
-simulate = _temp.simulate
+            A, B, C = simulate(model, tuple(new_params))
+
+            peaks_A, minimums_A, peaks_vals_A, minimums_vals_A = find_peaks(A)
+
+            if oscilating(peaks_vals_A, 0.01):
+                oscilacije[x][y] = 1
+
+                amplituda, perioda = eval_signal(peaks_A, minimums_vals_A, peaks_vals_A)
+                amplitude[x][y] = amplituda
+                periode[x][y] = perioda
+
+    # narisemo grafe
+    plot_graph(oscilacije, m_number, K_number, m_samples, K_samples, graph_index, fig_osc, 'Oscilacije')
+    plot_graph(amplitude, m_number, K_number, m_samples, K_samples, graph_index, fig_amp, 'Amplitude')
+    plot_graph(periode, m_number, K_number, m_samples, K_samples, graph_index, fig_per, 'Periode')
 
 def pairplot(samples_number, m_range, K_range, base_amplituda, base_perioda):
     ms = np.linspace(m_range[0], m_range[1], m_range[1]- m_range[0] + 1, dtype=int)
@@ -107,7 +134,7 @@ def pairplot(samples_number, m_range, K_range, base_amplituda, base_perioda):
 
         if oscilating(peaks_vals_A, 0.01):
             amplituda, perioda = eval_signal(peaks_A, minimums_vals_A, peaks_vals_A)
-            if (amplituda > 1  and perioda<base_perioda):#(amplituda >= base_amplituda and perioda<=base_perioda):
+            if (amplituda > 1 and perioda < base_perioda):  # (amplituda >= base_amplituda and perioda<=base_perioda):
                 oscilating_samples.append(list(new_params[4:]))
                 print(len(oscilating_samples), amplituda, perioda)
 
@@ -115,6 +142,25 @@ def pairplot(samples_number, m_range, K_range, base_amplituda, base_perioda):
     sb.pairplot(df, markers="+")
 
 
+# USER PARAMETERS
+model_type = 'positive'
+# model_type = 'negative'
+
+figure_size_x = 100
+figure_size_y = 15
+# figure_size_x = 30
+# figure_size_y = 15
+
+samples_number = 100
+# END OF USER PARAMETERS
+
+# SETUP
+start_time = time()
+
+_temp = __import__(model_type + '_core', globals(), locals(), ['get_model_params', 'model', 'simulate'], 0)
+get_model_params = _temp.get_model_params
+model = _temp.model
+simulate = _temp.simulate
 
 params = get_model_params()
 
@@ -126,6 +172,15 @@ fig_per = plt.figure(figsize=(figure_size_x, figure_size_y))
 # RUN
 preveri_obmocje(samples_number)
 # END OF RUN
+
+############## BENJA
+# base model vrednosti
+A, B, C = simulate(model, params)
+peaks_A, minimums_A, peaks_vals_A, minimums_vals_A = find_peaks(A)
+base_amplituda, base_perioda = eval_signal(peaks_A, minimums_vals_A, peaks_vals_A)
+
+pairplot(10000, [1, 4], [-1, 3], base_amplituda, base_perioda)
+############## BENJA
 
 # SAVE GRAPHS
 print('Saving graphs...')
@@ -144,9 +199,6 @@ fig_amp.savefig('plots/temp/png/' + model_type[0] + '_' + str(current_time) + '_
                 format='png')
 fig_per.savefig('plots/temp/png/' + model_type[0] + '_' + str(current_time) + '_per' + str(samples_number) + '.png',
                 format='png')
-#preveri_obmocje(50)
-pairplot(10000, [1,4], [-1,3], base_amplituda, base_perioda)
-# ce zelis spremeniti tip modela (poz. v neg. povratno zanko samo spremeni importe)
 
 # plt.show()
 # END OF SAVE GRAPHS
