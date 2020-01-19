@@ -76,10 +76,10 @@ def get_six_params_better():
     new_params[5] = denormalize(samples[0][5], K_range[0], K_range[1], discrete=False)  # K3
     return new_params
 
-def eval_one_max(individual):
+def eval_one_max(individual, params=get_model_params()):
     subject = tuple(individual)
     if len(subject) == 6:
-        params = get_model_params()
+        # params = get_model_params()
         A, B, C = simulate(model, params[:4] + subject)
     else:
         A, B, C = simulate(model, subject)
@@ -94,6 +94,7 @@ def eval_one_max(individual):
     return[0]
 
 def genetic_algorithm(mode="six_params"):
+    model_params = get_model_params()
     creator.create("FitnessMax", base.Fitness, weights=[1.0])
     creator.create("Individual", list, fitness=creator.FitnessMax)
 
@@ -107,7 +108,7 @@ def genetic_algorithm(mode="six_params"):
         toolbox.register("mutate", tools.mutUniformInt, indpb=0.5)
 
     toolbox.register("population", tools.initRepeat, list, toolbox.individual)
-    toolbox.register("evaluate", eval_one_max)
+    toolbox.register("evaluate", eval_one_max, params=model_params)
     toolbox.register("mate", tools.cxTwoPoint)
     # toolbox.register("mate", tools.cxOnePoint)
     # toolbox.register("mate", tools.cxBlend, alpha=0.2)
