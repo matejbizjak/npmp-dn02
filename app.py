@@ -10,6 +10,8 @@ import seaborn as sb
 from pyDOE import lhs  # pip install pyDOE
 
 from utils import eval_signal, oscilating, find_peaks
+from genetics import genetic_algorithm
+
 
 
 # def preveri_obmocje(samples_number):
@@ -196,6 +198,12 @@ params = get_model_params()
 # END OF SETUP
 
 # preveri_obmocje(samples_number)
+
+# GENETICS OPTIMIZATION
+# limiting_params = genetic_algorithm(mode="all_params")
+limiting_params = genetic_algorithm()
+print(limiting_params)
+# END OF GENETICS OPTIMIZATION
 
 # base model vrednosti
 A, B, C = simulate(model, params)

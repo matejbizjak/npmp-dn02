@@ -2,6 +2,7 @@ from deap import creator, base, tools, algorithms
 from numpy import random
 from negative_core import get_model_params, model, simulate
 from utils import eval_signal, oscilating, find_peaks
+from pyDOE import lhs
 
 # CXPB  is the probability with which two individuals are crossed
 # MUTPB is the probability for mutating an individual
@@ -12,15 +13,6 @@ MUTFC = 0.5
 POPULATION_SIZE = 300
 MAX_GENERATIONS = 5
 
-
-def get_six_params():
-    new_params = list(range(6))
-    for i in range(0, 3):
-        for j in range(0, 3):
-            new_params[i] = random.randint(1,5)
-            new_params[3 + j] = random.uniform(0.1, 1000)
-    return new_params
-
 def get_ten_params():
     new_params = list(get_model_params())
     for i in range(0, 3):
@@ -28,31 +20,6 @@ def get_ten_params():
             new_params[3 + i] = random.randint(1,5)
             new_params[6 + j] = random.uniform(0.1, 1000)
     return new_params
-
-
-def eval_one_max(individual):
-    subject = tuple(individual)
-    if len(subject) == 6:
-        params = get_model_params()
-        A, B, C = simulate(model, params[:4] + subject)
-    else:
-        A, B, C = simulate(model, subject)
-
-    peaks_A, minimums_A, peaks_vals_A, minimums_vals_A = find_peaks(A)
-    amplituda = 0
-    perioda = 0
-
-    if oscilating(peaks_vals_A, 0.01):
-        amplituda, perioda = eval_signal(peaks_A, minimums_vals_A, peaks_vals_A)
-        # print(amplituda, perioda)
-        # if perioda > 10:
-        #     return [0]
-        if amplituda > 0 and perioda > 0:
-            return [amplituda / perioda]
-
-
-    return[0]
-
 
 def mutate_ten_parameters(candidate):
     #(alpha, alpha0, beta, n, m1, m2, m3, K1, K2, K3)
@@ -84,23 +51,59 @@ def mutate_ten_parameters(candidate):
 
     return candidate,
 
+def get_six_params():
+    new_params = list(range(6))
+    for i in range(0, 3):
+        for j in range(0, 3):
+            new_params[i] = random.randint(1,5)
+            new_params[3 + j] = random.uniform(0.1, 1000)
+    return new_params
+
+def get_six_params_better():
+    from app import denormalize
+    m_range = [1, 4]
+    K_range = [0.1, 1000]
+
+    samples = lhs(6, samples=1, criterion='center')
+    new_params = list(range(6))
+
+    # denormalize
+    new_params[0] = denormalize(samples[0][0], m_range[0], m_range[1], discrete=True)  # m1
+    new_params[1] = denormalize(samples[0][1], m_range[0], m_range[1], discrete=True)  # m2
+    new_params[2] = denormalize(samples[0][2], m_range[0], m_range[1], discrete=True)  # m3
+    new_params[3] = denormalize(samples[0][3], K_range[0], K_range[1], discrete=False)  # K1
+    new_params[4] = denormalize(samples[0][4], K_range[0], K_range[1], discrete=False)  # K2
+    new_params[5] = denormalize(samples[0][5], K_range[0], K_range[1], discrete=False)  # K3
+    return new_params
+
+def eval_one_max(individual):
+    subject = tuple(individual)
+    if len(subject) == 6:
+        params = get_model_params()
+        A, B, C = simulate(model, params[:4] + subject)
+    else:
+        A, B, C = simulate(model, subject)
+
+    peaks_A, minimums_A, peaks_vals_A, minimums_vals_A = find_peaks(A)
+
+    if oscilating(peaks_vals_A, 0.01):
+        amplituda, perioda = eval_signal(peaks_A, minimums_vals_A, peaks_vals_A)
+        if amplituda > 0 and perioda > 0:
+            return [amplituda / perioda]
+
+    return[0]
+
 def genetic_algorithm(mode="six_params"):
-    # base model vrednosti
-    #A, B, C = simulate(model, params)
-    #peaks_A, minimums_A, peaks_vals_A, minimums_vals_A = find_peaks(A)
-    #base_amplituda, base_perioda = eval_signal(peaks_A, minimums_vals_A, peaks_vals_A)
-
-    new_params = list(get_model_params())
-
     creator.create("FitnessMax", base.Fitness, weights=[1.0])
     creator.create("Individual", list, fitness=creator.FitnessMax)
 
     toolbox = base.Toolbox()
     if mode == "all_params":
-        toolbox.register("individual", tools.initIterate, creator.Individual, get_ten_params, new_params)
+        toolbox.register("individual", tools.initIterate, creator.Individual, get_ten_params)
         toolbox.register("mutate", mutate_ten_parameters)
     else:
-        toolbox.register("individual", tools.initIterate, creator.Individual, get_six_params)
+        # toolbox.register("individual", tools.initIterate, creator.Individual, get_six_params)
+        toolbox.register("individual", tools.initIterate, creator.Individual, get_six_params_better)
         toolbox.register("mutate", tools.mutUniformInt, indpb=0.5)
 
     toolbox.register("population", tools.initRepeat, list, toolbox.individual)
@@ -191,14 +194,14 @@ def genetic_algorithm(mode="six_params"):
     best = list(pop)
     print("len of pop %s:" % len(best))
     for k in range(len(popul)):
-        print("%s. best individuals %s, %s" % (k, popul[k], popul[k].fitness.values))
+        # print("%s. best individuals %s, %s" % (k, popul[k], popul[k].fitness.values))
         if popul[k].fitness.values[0] < 1:
             best.remove(popul[k])
 
     best = [list(t) for t in set(tuple(element) for element in best)]
-    print("len of pop %s:" % len(best))
+    print("len of best pop %s:" % len(best))
 
-    for k in range(len(best)):
-        print("%s. best individuals %s" % (k, best[k]))
+    # for k in range(len(best)):
+    #     print("%s. best individuals %s" % (k, best[k]))
 
     return best
