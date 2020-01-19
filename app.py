@@ -202,7 +202,6 @@ params = get_model_params()
 # GENETICS OPTIMIZATION
 # limiting_params = genetic_algorithm(mode="all_params")
 limiting_params = genetic_algorithm()
-print(limiting_params)
 # END OF GENETICS OPTIMIZATION
 
 # base model vrednosti

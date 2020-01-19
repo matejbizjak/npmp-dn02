@@ -1,5 +1,6 @@
 from deap import creator, base, tools, algorithms
 from numpy import random
+
 from negative_core import get_model_params, model, simulate
 from utils import eval_signal, oscilating, find_peaks
 from pyDOE import lhs
@@ -10,8 +11,8 @@ from pyDOE import lhs
 CXPB = 0.5
 MUTPB = 0.2
 MUTFC = 0.5
-POPULATION_SIZE = 300
-MAX_GENERATIONS = 5
+POPULATION_SIZE = 100
+MAX_GENERATIONS = 3
 
 def get_ten_params():
     new_params = list(get_model_params())
@@ -205,4 +206,16 @@ def genetic_algorithm(mode="six_params"):
     # for k in range(len(best)):
     #     print("%s. best individuals %s" % (k, best[k]))
 
+    save_grapf(best)
     return best
+
+def save_grapf(best):
+    import numpy as nm
+    import pandas as pd
+    import seaborn as sb
+    import matplotlib.pyplot as plt
+    df = pd.DataFrame(nm.array(best), columns=["m1", "m2", "m3", "K1", "K2", "K3"])
+    fig = sb.pairplot(df, markers="+")
+    fig.savefig('plots/temp/genetics/' + 'population' + str(POPULATION_SIZE) +'_generations'
+                + str(MAX_GENERATIONS) + '_samples' + str(len(best)) + '.png', format='png')
+    plt.show()
