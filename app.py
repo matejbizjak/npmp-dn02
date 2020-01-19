@@ -134,7 +134,7 @@ def pairplot(samples_number, m_range, K_range, base_amplituda, base_perioda):
 
         if oscilating(peaks_vals_A, 0.01):
             amplituda, perioda = eval_signal(peaks_A, minimums_vals_A, peaks_vals_A)
-            if (amplituda > 1 and perioda < base_perioda):  # (amplituda >= base_amplituda and perioda<=base_perioda):
+            if (amplituda >= base_amplituda and perioda<=base_perioda):
                 oscilating_samples.append(list(new_params[4:]))
                 print(len(oscilating_samples), amplituda, perioda)
 
@@ -142,9 +142,79 @@ def pairplot(samples_number, m_range, K_range, base_amplituda, base_perioda):
     sb.pairplot(df, markers="+")
 
 
+
+# util function
+def denormalize(normalized_value, min, max, discrete=False):
+    if discrete:
+        values = np.linspace(min, max, max-min+1, dtype=int)
+        splitter = 1/(max-min+1)
+        start_splitter = splitter
+        counter = 0
+        while counter<(max-min):
+            if (normalized_value<start_splitter):
+                return values[counter]
+            counter+=1
+            start_splitter +=splitter;
+        return values[-1]
+    else:
+        value = ((max-min) * normalized_value) + min 
+        return value
+
+from pyDOE import lhs # pip install pyDOE
+def pairplot_lhs(samples_number, m_range, K_range, base_amplituda, base_perioda):
+    samples = lhs(6, samples=samples_number, criterion='center')
+    oscilating_samples = []
+    new_params = list(params)
+    better_both_counter=0
+    better_amp_counter=0
+    better_per_counter=0
+    sample_counter = 0
+
+    for sample in samples:
+
+        # denormalize
+        new_params[4] = denormalize(sample[0], m_range[0], m_range[1], discrete=True)   # m1
+        new_params[5] = denormalize(sample[1], m_range[0], m_range[1], discrete=True)   # m2
+        new_params[6] = denormalize(sample[2], m_range[0], m_range[1], discrete=True)   # m3
+        new_params[7] = denormalize(sample[3], K_range[0], K_range[1], discrete=False)  # K1
+        new_params[8] = denormalize(sample[4], K_range[0], K_range[1], discrete=False)  # K2
+        new_params[9] = denormalize(sample[5], K_range[0], K_range[1], discrete=False)  # K3
+
+        A, B, C = simulate(model, tuple(new_params))
+        peaks_A, minimums_A, peaks_vals_A, minimums_vals_A = find_peaks(A)
+
+        if oscilating(peaks_vals_A, 0.01):
+            amplituda, perioda = eval_signal(peaks_A, minimums_vals_A, peaks_vals_A)
+            
+            if (amplituda>0 and perioda>0):
+                if (amplituda >= base_amplituda and perioda<=base_perioda):
+                    oscilating_samples.append(list(new_params[4:]) + ["Boljše oboje"])
+                    better_both_counter+=1
+                elif (amplituda>base_amplituda):
+                    oscilating_samples.append(list(new_params[4:]) + ["Boljša amplituda"])
+                    better_amp_counter+=1
+                elif (perioda<base_perioda):
+                    oscilating_samples.append(list(new_params[4:]) + ["Boljša perioda"])
+                    better_per_counter+=1
+                
+        sample_counter +=1
+        print("Progress: " + str(sample_counter/samples_number))
+
+    print ("Base Values:", base_amplituda, base_perioda)
+    print("Samples: ", samples_number)
+    print("Better amp: ", better_amp_counter, "Better per: ", better_per_counter, "Better both: ", better_both_counter)
+
+    df = pd.DataFrame(oscilating_samples, columns=["m1", "m2", "m3", "K1", "K2", "K3", "Primerjava z osnovo"])
+    if better_both_counter>0:
+        sb.pairplot(df, markers="+", hue="Primerjava z osnovo", hue_order=["Boljša perioda", "Boljša amplituda", "Boljše oboje"])
+    else:
+        sb.pairplot(df, markers="+", hue="Primerjava z osnovo", hue_order=["Boljša perioda", "Boljša amplituda"])
+    plt.show()
+
+
 # USER PARAMETERS
 model_type = 'positive'
-# model_type = 'negative'
+#model_type = 'negative'
 
 figure_size_x = 100
 figure_size_y = 15
@@ -170,7 +240,7 @@ fig_per = plt.figure(figsize=(figure_size_x, figure_size_y))
 # END OF SETUP
 
 # RUN
-preveri_obmocje(samples_number)
+#preveri_obmocje(samples_number)
 # END OF RUN
 
 ############## BENJA
@@ -179,26 +249,27 @@ A, B, C = simulate(model, params)
 peaks_A, minimums_A, peaks_vals_A, minimums_vals_A = find_peaks(A)
 base_amplituda, base_perioda = eval_signal(peaks_A, minimums_vals_A, peaks_vals_A)
 
-pairplot(10000, [1, 4], [-1, 3], base_amplituda, base_perioda)
+#pairplot(10000, [1, 4], [-1, 3], base_amplituda, base_perioda)
+pairplot_lhs(200000, [1, 4], [0.1, 1000], base_amplituda, base_perioda)
 ############## BENJA
 
 # SAVE GRAPHS
 print('Saving graphs...')
 current_time = datetime.now().strftime("%m-%d-%Y_%H-%M-%S")
 # eps
-fig_osc.savefig('plots/temp/eps/' + model_type[0] + '_' + str(current_time) + '_osc' + str(samples_number) + '.eps',
-                format='eps')
-fig_amp.savefig('plots/temp/eps/' + model_type[0] + '_' + str(current_time) + '_amp' + str(samples_number) + '.eps',
-                format='eps')
-fig_per.savefig('plots/temp/eps/' + model_type[0] + '_' + str(current_time) + '_per' + str(samples_number) + '.eps',
-                format='eps')
+#fig_osc.savefig('plots/temp/eps/' + model_type[0] + '_' + str(current_time) + '_osc' + str(samples_number) + '.eps',
+#                format='eps')
+#fig_amp.savefig('plots/temp/eps/' + model_type[0] + '_' + str(current_time) + '_amp' + str(samples_number) + '.eps',
+#                format='eps')
+#fig_per.savefig('plots/temp/eps/' + model_type[0] + '_' + str(current_time) + '_per' + str(samples_number) + '.eps',
+#                format='eps')
 # png
-fig_osc.savefig('plots/temp/png/' + model_type[0] + '_' + str(current_time) + '_osc' + str(samples_number) + '.png',
-                format='png')
-fig_amp.savefig('plots/temp/png/' + model_type[0] + '_' + str(current_time) + '_amp' + str(samples_number) + '.png',
-                format='png')
-fig_per.savefig('plots/temp/png/' + model_type[0] + '_' + str(current_time) + '_per' + str(samples_number) + '.png',
-                format='png')
+#fig_osc.savefig('plots/temp/png/' + model_type[0] + '_' + str(current_time) + '_osc' + str(samples_number) + '.png',
+#                format='png')
+#fig_amp.savefig('plots/temp/png/' + model_type[0] + '_' + str(current_time) + '_amp' + str(samples_number) + '.png',
+#                format='png')
+#fig_per.savefig('plots/temp/png/' + model_type[0] + '_' + str(current_time) + '_per' + str(samples_number) + '.png',
+#                format='png')
 
 # plt.show()
 # END OF SAVE GRAPHS
