@@ -10,8 +10,8 @@ from pyDOE import lhs
 CXPB = 0.5
 MUTPB = 0.2
 MUTFC = 0.3
-POPULATION_SIZE = 2000
-MAX_GENERATIONS = 15
+POPULATION_SIZE = 300
+MAX_GENERATIONS = 5
 
 
 # model_type = 'positive'
@@ -69,7 +69,7 @@ def get_six_params():
     return new_params
 
 def get_six_params_better():
-    from app import denormalize
+    from analysis_pairplot import denormalize
     m_range = [1, 4]
     K_range = [0.1, 1000]
 
@@ -199,7 +199,8 @@ def genetic_algorithm(mode="six_params"):
     best = list(pop)
     print("len of pop %s:" % len(best))
     for k in range(len(popul)):
-        if popul[k].fitness.values[0] < 10:
+        # if popul[k].fitness.values[0] < 10:
+        if popul[k].fitness.values[0] < 0:
             best.remove(popul[k])
 
     best = [list(t) for t in set(tuple(element) for element in best)]
@@ -215,7 +216,7 @@ def genetic_algorithm(mode="six_params"):
             print("a: ",amplituda,", p:",perioda)
 
     save_grapf(best)
-    return best
+    # return best
 
 def save_grapf(best):
     import numpy as nm
@@ -227,3 +228,5 @@ def save_grapf(best):
     fig.savefig('plots/temp/genetics/' + 'population' + str(POPULATION_SIZE) +'_generations'
                 + str(MAX_GENERATIONS) + '_samples' + str(len(best)) + model_type +'.png', format='png')
     plt.show()
+
+genetic_algorithm()
