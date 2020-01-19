@@ -1,0 +1,3 @@
+Base Values: amp: 16.444995884574283 per: 7.7
+Samples:  30000
+Better amp:  6099(20.3%) Better per:  837(2.8%) Better both:  148(5%)
