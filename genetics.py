@@ -45,11 +45,14 @@ def eval_one_max(individual):
     if oscilating(peaks_vals_A, 0.01):
         amplituda, perioda = eval_signal(peaks_A, minimums_vals_A, peaks_vals_A)
         # print(amplituda, perioda)
+        # if perioda > 10:
+        #     return [0]
+        if amplituda > 0 and perioda > 0:
+            return [amplituda / perioda]
 
-    if perioda > 10:
-        return[0]
 
-    return [amplituda - perioda]
+    return[0]
+
 
 def mutate_ten_parameters(candidate):
     #(alpha, alpha0, beta, n, m1, m2, m3, K1, K2, K3)
@@ -67,21 +70,34 @@ def mutate_ten_parameters(candidate):
             elif idx == 2:
                 candidate[idx] = new_value % 10**4
             elif idx == 3:
-                candidate[idx] = int(new_value * rnd2)
+                new_value = (val + 1) % 4
+                if new_value == 0:
+                    new_value = 1
+                candidate[idx] = new_value
             elif idx > 3 and idx < 7:
-                candidate[idx] = int(new_value * rnd2) % 4
+                new_value = (val + 1) % 4
+                if new_value == 0:
+                    new_value = 1
+                candidate[idx] = new_value
             else:
                 candidate[idx] = new_value % 10 **3
 
     return candidate,
 
 def genetic_algorithm(mode="six_params"):
+    # base model vrednosti
+    #A, B, C = simulate(model, params)
+    #peaks_A, minimums_A, peaks_vals_A, minimums_vals_A = find_peaks(A)
+    #base_amplituda, base_perioda = eval_signal(peaks_A, minimums_vals_A, peaks_vals_A)
+
+    new_params = list(get_model_params())
+
     creator.create("FitnessMax", base.Fitness, weights=[1.0])
     creator.create("Individual", list, fitness=creator.FitnessMax)
 
     toolbox = base.Toolbox()
     if mode == "all_params":
-        toolbox.register("individual", tools.initIterate, creator.Individual, get_ten_params)
+        toolbox.register("individual", tools.initIterate, creator.Individual, get_ten_params, new_params)
         toolbox.register("mutate", mutate_ten_parameters)
     else:
         toolbox.register("individual", tools.initIterate, creator.Individual, get_six_params)
@@ -170,15 +186,19 @@ def genetic_algorithm(mode="six_params"):
 
     print("-- End of (successful) evolution --")
 
-    best = tools.selBest(pop, 20)
-    for k in range(10):
-        print("%s. best individuals %s, %s" % (k, best[k], best[k].fitness.values))
+    # best = list(tools.selBest(pop, len(pop)))
+    popul = list(pop)
+    best = list(pop)
+    print("len of pop %s:" % len(best))
+    for k in range(len(popul)):
+        print("%s. best individuals %s, %s" % (k, popul[k], popul[k].fitness.values))
+        if popul[k].fitness.values[0] < 1:
+            best.remove(popul[k])
 
-    sorted = []
-    for k in range(len(best[0])):
-        if list(best[0])[k] > list(best[19])[k]:
-            sorted.append([(best[19])[k], tuple(best[0])[k]])
-        else:
-            sorted.append([(best[0])[k], tuple(best[19])[k]])
+    best = [list(t) for t in set(tuple(element) for element in best)]
+    print("len of pop %s:" % len(best))
 
-    return sorted
+    for k in range(len(best)):
+        print("%s. best individuals %s" % (k, best[k]))
+
+    return best
