@@ -1,7 +1,6 @@
 from deap import creator, base, tools, algorithms
 from numpy import random
 
-from negative_core import get_model_params, model, simulate
 from utils import eval_signal, oscilating, find_peaks
 from pyDOE import lhs
 
@@ -10,9 +9,17 @@ from pyDOE import lhs
 # MUTFC is the mutation factor
 CXPB = 0.5
 MUTPB = 0.2
-MUTFC = 0.5
-POPULATION_SIZE = 100
-MAX_GENERATIONS = 3
+MUTFC = 0.3
+POPULATION_SIZE = 2000
+MAX_GENERATIONS = 15
+
+
+# model_type = 'positive'
+model_type = 'negative'
+_temp = __import__(model_type + '_core', globals(), locals(), ['get_model_params', 'model', 'simulate'], 0)
+get_model_params = _temp.get_model_params
+model = _temp.model
+simulate = _temp.simulate
 
 def get_ten_params():
     new_params = list(get_model_params())
@@ -58,6 +65,7 @@ def get_six_params():
         for j in range(0, 3):
             new_params[i] = random.randint(1,5)
             new_params[3 + j] = random.uniform(0.1, 1000)
+
     return new_params
 
 def get_six_params_better():
@@ -78,10 +86,10 @@ def get_six_params_better():
     return new_params
 
 def eval_one_max(individual, params=get_model_params()):
+
     subject = tuple(individual)
     if len(subject) == 6:
-        # params = get_model_params()
-        A, B, C = simulate(model, params[:4] + subject)
+        A, B, C = simulate(model, tuple(params[:4] + subject))
     else:
         A, B, C = simulate(model, subject)
 
@@ -91,8 +99,8 @@ def eval_one_max(individual, params=get_model_params()):
         amplituda, perioda = eval_signal(peaks_A, minimums_vals_A, peaks_vals_A)
         if amplituda > 0 and perioda > 0:
             return [amplituda / perioda]
-
     return[0]
+
 
 def genetic_algorithm(mode="six_params"):
     model_params = get_model_params()
@@ -104,18 +112,13 @@ def genetic_algorithm(mode="six_params"):
         toolbox.register("individual", tools.initIterate, creator.Individual, get_ten_params)
         toolbox.register("mutate", mutate_ten_parameters)
     else:
-        # toolbox.register("individual", tools.initIterate, creator.Individual, get_six_params)
-        toolbox.register("individual", tools.initIterate, creator.Individual, get_six_params_better)
-        toolbox.register("mutate", tools.mutUniformInt, indpb=0.5)
+        toolbox.register("individual", tools.initIterate, creator.Individual, get_six_params)
+        # toolbox.register("individual", tools.initIterate, creator.Individual, get_six_params_better)
+        toolbox.register("mutate", tools.mutUniformInt, indpb=0.2)
 
     toolbox.register("population", tools.initRepeat, list, toolbox.individual)
     toolbox.register("evaluate", eval_one_max, params=model_params)
     toolbox.register("mate", tools.cxTwoPoint)
-    # toolbox.register("mate", tools.cxOnePoint)
-    # toolbox.register("mate", tools.cxBlend, alpha=0.2)
-    # toolbox.register("mutate", tools.mutFlipBit, indpb=0.2)
-    # toolbox.register("mutate", tools.mutShuffleIndexes, indpb=0.1)
-    # toolbox.register("mutate", tools.mutGaussian, mu=0, sigma=0.5, indpb=0.5)
     toolbox.register("select", tools.selTournament, tournsize=3)
 
     random.seed(64)
@@ -135,7 +138,7 @@ def genetic_algorithm(mode="six_params"):
     g = 0
 
     # Begin the evolution
-    while max(fits) < 90 and g < MAX_GENERATIONS:
+    while g < MAX_GENERATIONS:
         # A new generation
         g = g + 1
         print("-- Generation %i --" % g)
@@ -162,6 +165,7 @@ def genetic_algorithm(mode="six_params"):
                     toolbox.mutate(mutant)
                 else:
                     toolbox.mutate(mutant, [1,1,1,0,0,0],[4,4,4,1000,1000,1000])
+                    # toolbox.mutate(mutant, [1,1,1,0,0,0],[2,2,2,100,100,100])
                 del mutant.fitness.values
 
         # Evaluate the individuals with an invalid fitness
@@ -191,20 +195,24 @@ def genetic_algorithm(mode="six_params"):
 
     print("-- End of (successful) evolution --")
 
-    # best = list(tools.selBest(pop, len(pop)))
     popul = list(pop)
     best = list(pop)
     print("len of pop %s:" % len(best))
     for k in range(len(popul)):
-        # print("%s. best individuals %s, %s" % (k, popul[k], popul[k].fitness.values))
-        if popul[k].fitness.values[0] < 1:
+        if popul[k].fitness.values[0] < 10:
             best.remove(popul[k])
 
     best = [list(t) for t in set(tuple(element) for element in best)]
     print("len of best pop %s:" % len(best))
 
-    # for k in range(len(best)):
-    #     print("%s. best individuals %s" % (k, best[k]))
+    for i in range(len(best)):
+        A, B, C = simulate(model, get_model_params()[:4] + tuple(best[i]))
+
+        peaks_A, minimums_A, peaks_vals_A, minimums_vals_A = find_peaks(A)
+
+        if oscilating(peaks_vals_A, 0.01):
+            amplituda, perioda = eval_signal(peaks_A, minimums_vals_A, peaks_vals_A)
+            print("a: ",amplituda,", p:",perioda)
 
     save_grapf(best)
     return best
@@ -217,5 +225,5 @@ def save_grapf(best):
     df = pd.DataFrame(nm.array(best), columns=["m1", "m2", "m3", "K1", "K2", "K3"])
     fig = sb.pairplot(df, markers="+")
     fig.savefig('plots/temp/genetics/' + 'population' + str(POPULATION_SIZE) +'_generations'
-                + str(MAX_GENERATIONS) + '_samples' + str(len(best)) + '.png', format='png')
+                + str(MAX_GENERATIONS) + '_samples' + str(len(best)) + model_type +'.png', format='png')
     plt.show()
